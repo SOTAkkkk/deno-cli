@@ -1,17 +1,32 @@
-const name = Deno.args[0];
-const food = Deno.args[1];
-console.log(`Hello ${name}, I like ${food}!`);
+import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/mod.ts";
+import { serve } from "https://deno.land/std@0.196.0/http/server.ts";
 
-import { parseArgs } from "https://deno.land/std@0.207.0/cli/parse_args.ts";
 
-const flags = parseArgs(Deno.args, {
-    boolean: ["help", "color"],
-    string: ["version"],
-    default: { color: true },
-    negatable: ["color"],
-});
-console.log("Wants help?", flags.help);
-console.log("Version:", flags.version);
-console.log("Wants color?:", flags.color);
+await new Command()
+  .name("reverse-proxy")
+  .description("A simple reverse proxy example cli.")
+  .version("v1.0.0")
+  .option("-p, --port <port:number>", "The port number for the local server.", {
+    default: 8080,
+  })
+  .option("--host <hostname>", "The host name for the local server.", {
+    default: "localhost",
+  })
+  .arguments("[domain]")
+  .action(async ({ port, host }, domain = "deno.land") => {
+    console.log(`Listening on http://${host}:${port}`);
+    await serve((req: Request) => {
+      const url = new URL(req.url);
+      url.protocol = "https:";
+      url.hostname = domain;
+      url.port = "443";
 
-console.log("Other:", flags._);
+      console.log("Proxy request to:", url.href);
+      return fetch(url.href, {
+        headers: req.headers,
+        method: req.method,
+        body: req.body,
+      });
+    }, { hostname: host, port });
+  })
+  .parse();
