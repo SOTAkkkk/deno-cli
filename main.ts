@@ -1,26 +1,17 @@
-import { Command } from "npm:commander";
-import process from "node:process";
+const name = Deno.args[0];
+const food = Deno.args[1];
+console.log(`Hello ${name}, I like ${food}!`);
 
+import { parseArgs } from "https://deno.land/std@0.207.0/cli/parse_args.ts";
 
-const program = new Command();
-// バージョン情報
-program
-    .version('0.0.1', '-v, --version')
+const flags = parseArgs(Deno.args, {
+    boolean: ["help", "color"],
+    string: ["version"],
+    default: { color: true },
+    negatable: ["color"],
+});
+console.log("Wants help?", flags.help);
+console.log("Version:", flags.version);
+console.log("Wants color?:", flags.color);
 
-program
-    .command('exec <cmd>')
-    .alias('ex')
-    .description('execute the given remote cmd')
-    .option("-e, --exec_mode <mode>", "Which exec mode to use")
-    .action((cmd, options) => {
-        const mode = options.exec_mode || 'default'
-        console.log('exec "%s" using %s mode', cmd, mode)
-    }).on('--help', function() {
-    console.log('  Examples:')
-    console.log()
-    console.log('    $ deploy exec sequential')
-    console.log('    $ deploy exec async')
-    console.log()
-})
-
-program.parse(process.argv)
+console.log("Other:", flags._);
