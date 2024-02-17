@@ -3,5 +3,5 @@
 ## 実行
 
 ```shell
-deno run -A main.ts exec --help
+deno run -A main.ts -V
 ```
